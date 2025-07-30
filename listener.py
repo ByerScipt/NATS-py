@@ -4,6 +4,7 @@ import json
 import logging
 import argparse
 import os
+import datetime
 
 # 命令行设置路口ID
 parser = argparse.ArgumentParser(
@@ -41,15 +42,19 @@ async def message_handler(msg):
         intersection_id = msg.subject.split('.')[-1]
         
         # 2. 根据路口ID动态生成文件名
-        filename = os.path.join(output_dir, f"{intersection_id}.json")
+        filename = os.path.join(output_dir, f"{intersection_id}.log")
         
         # 3. 解码、解析并写入到对应的文件中
         data_str = msg.data.decode()
+
+        timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S,%f')[:-3]
+        level = "INFO"
+        log_line = f"{timestamp} - {level} - {data_str}\n"
         
         logging.info(f"Message from subject '{msg.subject}' received, writing to '{filename}'")
         
-        with open(filename, "a", newline='', encoding='utf-8') as f:
-            f.write(data_str +"\n")
+        with open(filename, "a", encoding='utf-8') as f:
+            f.write(log_line)
             
     except Exception as e:
         logging.error(f"Failed to process message from subject '{msg.subject}': {e}")
