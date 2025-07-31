@@ -7,10 +7,7 @@ import random
 import argparse
 
 # 命令行设置路口ID
-parser = argparse.ArgumentParser(
-    description='NATS Traffic Data Publisher: 为指定路口发布模拟交通数据。'
-)
-
+parser = argparse.ArgumentParser()
 parser.add_argument(
     'intersection_id', 
     type=str, 
@@ -27,7 +24,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 def generate_traffic_state():
     """
-    模拟交通相位字典
+    模拟交通相位字典，随机生成等待和运行车辆数
     """
     # 12个基础相位
     directions = ["WN","WE","WS","ES","EW","EN","NE","NS","NW","SN","SE","SW"]
@@ -60,13 +57,9 @@ async def main():
     try:
         logging.info("Starting to publish traffic states, press Ctrl+C to stop")
         while True:
-            # 生成交通状态
             traffic_state = generate_traffic_state()
-            # 发布消息到指定主题
             await nc.publish(subject, traffic_state)
-            # 打印日志
             logging.info(f"Published message to {subject}: {traffic_state.decode()}")
-            # 等待interval秒钟
             await asyncio.sleep(interval)
     except KeyboardInterrupt:
         logging.info("Publisher stopped by user")

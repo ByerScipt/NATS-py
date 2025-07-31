@@ -7,10 +7,9 @@ import os
 import datetime
 
 # 命令行设置路口ID
-parser = argparse.ArgumentParser(
-    description='NATS Traffic Data Listener: 监听指定路口的交通数据。'
-)
-parser.add_argument(
+parser = argparse.ArgumentParser() # 实例化parser
+parser.add_argument( 
+    # 可选择是否添加subject，默认为通配符">"
     'intersection_id', 
     nargs='?', 
     default='>', 
@@ -37,18 +36,13 @@ async def message_handler(msg):
     try:
         output_dir = 'log'
         os.makedirs(output_dir, exist_ok=True)  # 确保输出目录存在
-        # 1. 从消息主题中，解析出路口ID
-        #    例如: 从 "dev.traffic.test.intersection_1_1" 中，提取出 "intersection_1_1"
+
         intersection_id = msg.subject.split('.')[-1]
-        
-        # 2. 根据路口ID动态生成文件名
         filename = os.path.join(output_dir, f"{intersection_id}.log")
-        
-        # 3. 解码、解析并写入到对应的文件中
         data_str = msg.data.decode()
 
         timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S,%f')[:-3]
-        level = "INFO"
+        level = "INFO" # 暂时设为INFO
         log_line = f"{timestamp} - {level} - {data_str}\n"
         
         logging.info(f"Message from subject '{msg.subject}' received, writing to '{filename}'")
@@ -79,8 +73,6 @@ async def main():
     finally:
         await nc.close()
         logging.info("Connection to NATS server closed")
-
-    pass
 
 if __name__ == "__main__":
     asyncio.run(main())
