@@ -46,7 +46,7 @@ docker run --rm -d -p 4222:4222 -p 8222:8222 --name nats-dev nats:latest
 
 如果不使用Docker，也可以直接从NATS官网下载并运行。
 
-1.访问 NATS Server GitHub Releases 页面。
+1.访问 [NATS Server GitHub Releases](https://github.com/nats-io/nats-server/releases) 页面。
 
 2.下载对应操作系统的最新版本（例如 ...-linux-amd64.zip）。
 
