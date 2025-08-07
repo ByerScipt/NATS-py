@@ -23,9 +23,7 @@ async def message_handler(msg):
     回调函数，只负责将收到的原始消息内容，根据主题写入文件。
     """
     try:
-        #为了避免通配符'>'或'*'成为文件名，做一个替换
-        subject_for_filename = msg.subject.replace('>', '_wildcard_')
-        filename = os.path.join(args.log, f"{subject_for_filename}.log")
+        filename = os.path.join(args.log, f"{subject}.log")
         os.makedirs(args.log, exist_ok=True)
         raw_message_content = msg.data.decode('utf-8', errors='ignore')
         with open(filename, "a", encoding='utf-8') as f:
