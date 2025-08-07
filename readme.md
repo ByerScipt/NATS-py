@@ -12,18 +12,21 @@
 ## 环境配置 (Environment Setup)
 
 **1.确保Python版本**
+
 建议使用Python3.10或更高版本
 ```bash
 python3 --version
 ```
 
 **2.安装依赖库**
+
 本项目仅依赖nats-py库。
 ```bash
 pip install nats-py
 ```
 
 **3.启动NATS测试服务器**
+
 本监听器是一个客户端程序，它需要连接到一个正在运行的NATS服务器才能工作。在开发和测试阶段，最便捷的方式是在本地或服务器上启动一个NATS实例。
 
 **方法一：使用Docker（推荐）**
@@ -40,6 +43,7 @@ docker run --rm -d -p 4222:4222 -p 8222:8222 --name nats-dev nats:latest
 ```
 
 **方法二：直接运行二进制文件**
+
 如果不使用Docker，也可以直接从NATS官网下载并运行。
 
 1.访问 NATS Server GitHub Releases 页面。
@@ -71,6 +75,7 @@ async def main():
 在已激活虚拟环境的终端中，进入项目根目录，然后执行以下命令：
 
 **1. 启动监听服务（使用默认日志目录log）**
+
 直接运行脚本，它将开始监听在代码中配置好的主题，并将日志保存在项目根目录下的log文件夹中。
 ```bash
 python listener.py
@@ -84,6 +89,7 @@ python listener.py
 ```
 
 **2.启动监听服务（自定义日志目录）**
+
 可以使用--log参数来指定一个不同的文件夹来保存日志。
 ```bash
 python listener.py --log /path/to/your/custom_logs
