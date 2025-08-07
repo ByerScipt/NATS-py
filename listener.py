@@ -1,78 +1,61 @@
 import asyncio
 import nats
-import json
 import logging
 import argparse
 import os
-import datetime
 
-# 命令行设置路口ID
-parser = argparse.ArgumentParser() # 实例化parser
-parser.add_argument( 
-    # 可选择是否添加subject，默认为通配符">"
-    'intersection_id', 
-    nargs='?', 
-    default='>', 
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    '--log', 
+    default='log', 
     type=str, 
-    help='要监听的路口ID或通配符 (例如: intersection_1_1, *, >)。默认为 ">"，监听所有。'
+    help='用于保存原始日志文件的根目录 (默认为log)'
 )
 args = parser.parse_args()
 
-# 读取配置文件
-with open('nats_config.json', 'r') as f:
-    config = json.load(f)
-
-# 设置日志记录
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, 
+    format='%(asctime)s - %(levelname)s - [Listener] - %(message)s'
+)
 
 async def message_handler(msg):
     """
-    回调函数，用于处理接收到的消息
+    回调函数，只负责将收到的原始消息内容，根据主题写入文件。
     """
-    data = msg.data.decode()
-    data = json.loads(data)
-    logging.info(f"Received message on subject {msg.subject}: {data}")
-
     try:
-        output_dir = 'log'
-        os.makedirs(output_dir, exist_ok=True)  # 确保输出目录存在
-
-        intersection_id = msg.subject.split('.')[-1]
-        filename = os.path.join(output_dir, f"{intersection_id}.log")
-        data_str = msg.data.decode()
-
-        timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S,%f')[:-3]
-        level = "INFO" # 暂时设为INFO
-        log_line = f"{timestamp} - {level} - {data_str}\n"
-        
-        logging.info(f"Message from subject '{msg.subject}' received, writing to '{filename}'")
-        
+        #为了避免通配符'>'或'*'成为文件名，做一个替换
+        subject_for_filename = msg.subject.replace('>', '_wildcard_')
+        filename = os.path.join(args.log, f"{subject_for_filename}.log")
+        os.makedirs(args.log, exist_ok=True)
+        raw_message_content = msg.data.decode('utf-8', errors='ignore')
         with open(filename, "a", encoding='utf-8') as f:
-            f.write(log_line)
+            f.write(raw_message_content + "\n")
             
+        logging.info(f"已将来自 '{msg.subject}' 的原始消息存入 '{filename}'")
+        
     except Exception as e:
-        logging.error(f"Failed to process message from subject '{msg.subject}': {e}")
-
+        logging.error(f"处理主题 '{msg.subject}' 的消息时发生错误: {e}")
 
 async def main():
-    # 读取配置
-    nats_url = config['NATS']['URL']
-    subject_prefix = config['NATS']['SUBJECT_PREFIX']
-    subject = f"{subject_prefix}.{args.intersection_id}"
+    """ 
+    主函数，连接到NATS服务器并订阅指定主题。
+    """
+    nats_url = "nats://47.108.226.49:4222"
+    subject_to_listen = "anomaly_light_data"
 
-    logging.info(f"Connecting to NATS server at {nats_url}")
+    logging.info(f"正在尝试连接到NATS服务器: {nats_url} ...")
     nc = await nats.connect(nats_url)
-    logging.info(f"Successfully connected to NATS server, subscribing to subject {subject}")
+    logging.info(f"成功连接到NATS，准备监听主题 '{subject_to_listen}'...")
 
-    await nc.subscribe(subject, cb=message_handler)
+    await nc.subscribe(subject_to_listen, cb=message_handler)
 
     try:
         await asyncio.Future()
     except KeyboardInterrupt:
-        logging.info("Listener stopped by user")
+        logging.info("收到退出信号...")
     finally:
         await nc.close()
-        logging.info("Connection to NATS server closed")
+        logging.info("NATS连接已关闭。")
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     asyncio.run(main())
