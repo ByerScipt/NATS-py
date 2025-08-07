@@ -96,7 +96,31 @@ python listener.py --log /path/to/your/custom_logs
 ```
 启动后，所有日志文件将被创建在/path/to/your/custom_logs目录下。
 
-**3.停止运行**
+**3.启动数据发布器 (Publisher) (用于测试)**
+
+publisher.py是一个独立的测试工具，位于tools文件夹，主要用来向NATS服务器发送模拟的算法输出消息。
+
+修改以下变量：
+
+```python
+# tools/publisher.py
+
+# 1. NATS服务器的URL
+NATS_URL = "nats://47.108.226.49:4222" 
+
+# 2. 要发布到的主题
+TARGET_SUBJECT = "anomaly_light_data"
+```
+
+创建一个新的终端：
+```bash
+cd tools
+
+python publisher.py
+```
+
+
+**4.停止运行**
 ```bash
 Ctrl+C
 ```
