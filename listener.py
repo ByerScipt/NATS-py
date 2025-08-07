@@ -3,6 +3,7 @@ import nats
 import logging
 import argparse
 import os
+import datetime
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -23,7 +24,7 @@ async def message_handler(msg):
     回调函数，只负责将收到的原始消息内容，根据主题写入文件。
     """
     try:
-        filename = os.path.join(args.log, f"{subject}.log")
+        filename = os.path.join(args.log, f"{datetime.date.today()}_{msg.subject}.log")
         os.makedirs(args.log, exist_ok=True)
         raw_message_content = msg.data.decode('utf-8', errors='ignore')
         with open(filename, "a", encoding='utf-8') as f:
